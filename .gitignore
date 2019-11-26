@@ -29,11 +29,13 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
+# Compiled files
 build/Release
+dist/
 
-# Dependency directories
+# Dependency
 node_modules/
+package-lock.json
 jspm_packages/
 
 # TypeScript v1 declaration files
@@ -59,3 +61,6 @@ typings/
 
 # next.js build output
 .next
+
+# Cloud services
+.leancloud/
