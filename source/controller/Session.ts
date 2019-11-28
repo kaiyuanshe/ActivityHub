@@ -12,6 +12,8 @@ import {
     UnauthorizedError
 } from 'routing-controllers';
 
+import { UserModel } from '../model/User';
+
 interface SignInToken {
     phone: string;
     code?: string;
@@ -44,7 +46,10 @@ export default class SessionController {
     }
 
     @Patch('/')
-    async editProfile(@Ctx() { currentUser }: Context, @Body() body: any) {
+    async editProfile(
+        @Ctx() { currentUser }: Context,
+        @Body() body: UserModel
+    ) {
         if (!currentUser) throw new UnauthorizedError();
 
         await currentUser.save(body, { user: currentUser });

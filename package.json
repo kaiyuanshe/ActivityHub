@@ -1,6 +1,6 @@
 {
     "name": "activity-hub",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "",
     "repository": {
         "type": "git",
@@ -33,15 +33,15 @@
         "routing-controllers": "^0.8.0"
     },
     "devDependencies": {
-        "@types/koa": "^2.0.52",
+        "@types/koa": "^2.11.0",
         "@types/koa-bodyparser": "^4.3.0",
         "@types/koa-logger": "^3.1.1",
         "@types/koa-router": "^7.0.42",
         "husky": "^3.1.0",
-        "lint-staged": "^9.4.3",
+        "lint-staged": "^9.5.0",
         "nodemon": "^2.0.1",
         "prettier": "^1.19.1",
-        "ts-node": "^8.5.2",
+        "ts-node": "^8.5.4",
         "typescript": "^3.7.2"
     },
     "prettier": {

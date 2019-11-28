@@ -8,6 +8,12 @@
 
 1. [LeanCloud 手机短信验证码登录](source/controller/Session.ts)
 
+## 数据模型
+
+1. [User](source/model/User.ts)
+
+2. [Activity](source/model/Activity.ts)
+
 ## 本地开发
 
 ```shell
