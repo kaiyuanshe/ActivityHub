@@ -10,9 +10,27 @@
 
 ## 数据模型
 
-1. [User](source/model/User.ts)
+### 第一版
 
-2. [Activity](source/model/Activity.ts)
+-   [x] [User](source/model/User.ts) 组织者、讲师、合作方联系人、志愿者等
+
+-   [x] [Activity](source/model/Activity.ts) 小型沙龙、中型活动、大型会议
+
+-   [ ] Session 活动环节（演讲、实训等）
+
+-   [ ] Organization 合作方（场地、赞助、媒体等）
+
+-   [ ] Place 会场（会议室、教室、咖啡馆等）
+
+-   [ ] Cooperation 合作关系（Activity 与 Organization）
+
+### 第二版
+
+-   [ ] Track 分会场、议程轨（相当于分类）
+
+-   [ ] Ticket 门票
+
+-   [ ] Account 账目（赞助、差旅、物料、门票等）
 
 ## 本地开发
 

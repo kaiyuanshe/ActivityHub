@@ -1,3 +1,4 @@
+import { Context } from 'koa';
 import { Object as LCObject, Query } from 'leanengine';
 import {
     JsonController,
@@ -12,7 +13,6 @@ import {
 } from 'routing-controllers';
 
 import { ActivityModel } from '../model/Activity';
-import { Context } from 'koa';
 
 const Activity = LCObject.extend('Activity');
 
@@ -24,7 +24,7 @@ export default class ActivityController {
 
         const activity = new Activity();
 
-        await activity.save(body);
+        await activity.save({ owner: currentUser, ...body });
 
         return activity.toJSON();
     }
@@ -54,7 +54,13 @@ export default class ActivityController {
     }
 
     @Get()
-    getList(@QueryParam('pageSize') pageSize = 10) {
-        return new Query('Activity').limit(pageSize).find();
+    getList(
+        @QueryParam('pageSize') pageSize = 10,
+        @QueryParam('pageIndex') pageIndex = 1
+    ) {
+        return new Query('Activity')
+            .limit(pageSize)
+            .skip(pageSize * --pageIndex)
+            .find();
     }
 }
