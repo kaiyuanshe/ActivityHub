@@ -12,6 +12,7 @@ import {
     UnauthorizedError
 } from 'routing-controllers';
 
+import { LCContext } from '../utility';
 import { UserModel } from '../model/User';
 
 interface SignInToken {
@@ -29,8 +30,8 @@ export default class SessionController {
     @Post('/')
     async signIn(
         @Body() { phone, code }: SignInToken,
-        @Ctx() context: Context
-    ) {
+        @Ctx() context: LCContext
+    ): Promise<UserModel> {
         const user = await User.signUpOrlogInWithMobilePhone(phone, code);
 
         context.saveCurrentUser(user);
@@ -39,7 +40,7 @@ export default class SessionController {
     }
 
     @Get('/')
-    getProfile(@Ctx() { currentUser }: Context) {
+    getProfile(@Ctx() { currentUser }: LCContext): Promise<UserModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         return currentUser.toJSON();
@@ -47,9 +48,9 @@ export default class SessionController {
 
     @Patch('/')
     async editProfile(
-        @Ctx() { currentUser }: Context,
+        @Ctx() { currentUser }: LCContext,
         @Body() body: UserModel
-    ) {
+    ): Promise<UserModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         await currentUser.save(body, { user: currentUser });
@@ -58,7 +59,7 @@ export default class SessionController {
     }
 
     @Delete('/')
-    destroy(@Ctx() context: Context) {
+    destroy(@Ctx() context: LCContext) {
         if (!context.currentUser) throw new UnauthorizedError();
 
         context.currentUser.logOut();

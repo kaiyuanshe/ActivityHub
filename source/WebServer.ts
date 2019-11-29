@@ -6,7 +6,10 @@ import { useKoaServer } from 'routing-controllers';
 
 import MainController from './controller/Main';
 import SessionController from './controller/Session';
-import ActivityController from './controller/Activity';
+import {
+    ActivityController,
+    ActiviySessionController
+} from './controller/Activity';
 
 const {
     LEANCLOUD_APP_ID: appId,
@@ -34,7 +37,12 @@ const app = new Koa()
 
 useKoaServer(app, {
     cors: { credentials: true },
-    controllers: [MainController, SessionController, ActivityController]
+    controllers: [
+        MainController,
+        SessionController,
+        ActiviySessionController,
+        ActivityController
+    ]
 });
 
 app.listen(port, () =>

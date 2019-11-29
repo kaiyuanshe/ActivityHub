@@ -14,9 +14,11 @@
 
 -   [x] [User](source/model/User.ts) 组织者、讲师、合作方联系人、志愿者等
 
--   [x] [Activity](source/model/Activity.ts) 小型沙龙、中型活动、大型会议
+-   [x] [Activity](source/model/Activity/Activity.ts) 小型沙龙、中型活动、大型会议
 
--   [ ] Session 活动环节（演讲、实训等）
+-   [x] [Session](source/model/Activity/Session.ts) 活动环节（演讲、实训等）
+
+-   [ ] SessionSubmit 环节申报（Activity 与 Session）
 
 -   [ ] Organization 合作方（场地、赞助、媒体等）
 

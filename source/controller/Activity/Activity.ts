@@ -1,4 +1,3 @@
-import { Context } from 'koa';
 import { Object as LCObject, Query } from 'leanengine';
 import {
     JsonController,
@@ -12,14 +11,18 @@ import {
     QueryParam
 } from 'routing-controllers';
 
-import { ActivityModel } from '../model/Activity';
+import { LCContext } from '../../utility';
+import { ActivityModel } from '../../model/Activity';
 
 const Activity = LCObject.extend('Activity');
 
 @JsonController('/activity')
-export default class ActivityController {
+export class ActivityController {
     @Post()
-    async create(@Ctx() { currentUser }: Context, @Body() body: ActivityModel) {
+    async create(
+        @Ctx() { currentUser }: LCContext,
+        @Body() body: ActivityModel
+    ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         const activity = new Activity();
@@ -30,7 +33,7 @@ export default class ActivityController {
     }
 
     @Get('/:id')
-    async getOne(@Param('id') id: string) {
+    async getOne(@Param('id') id: string): Promise<ActivityModel> {
         const activity = LCObject.createWithoutData('Activity', id);
 
         await activity.fetch();
@@ -40,10 +43,10 @@ export default class ActivityController {
 
     @Patch('/:id')
     async edit(
-        @Ctx() { currentUser }: Context,
+        @Ctx() { currentUser }: LCContext,
         @Param('id') id: string,
         @Body() body: ActivityModel
-    ) {
+    ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         const activity = LCObject.createWithoutData('Activity', id);
