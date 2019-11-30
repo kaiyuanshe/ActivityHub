@@ -12,6 +12,8 @@
 
 ### 第一版
 
+办完一场**小型免费活动**的建模，且兼容后续大中型活动的数据结构：
+
 -   [x] [User](source/model/User.ts) 组织者、讲师、合作方联系人、志愿者等
 
 -   [x] [Activity](source/model/Activity/Activity.ts) 小型沙龙、中型活动、大型会议
@@ -24,15 +26,23 @@
 
 -   [ ] Place 会场（会议室、教室、咖啡馆等）
 
--   [ ] Cooperation 合作关系（Activity 与 Organization）
+-   [x] [Cooperation](source/model/Organization/Cooperation.ts) 合作关系（Activity 与 Organization）
+
+-   [ ] Ticket 门票类别（单 Activity、多 Session）
+
+-   [ ] TicketOrder 门票订单（User 与 Ticket）
+
+-   [ ] SessionSignin 环节签到（Session 与 TicketOrder）
 
 ### 第二版
 
 -   [ ] Track 分会场、议程轨（相当于分类）
 
--   [ ] Ticket 门票
+-   [ ] Exhibition 外场展位
 
 -   [ ] Account 账目（赞助、差旅、物料、门票等）
+
+-   [ ] Feedback 活动反馈（多 Session、多 Exhibition）
 
 ## 本地开发
 

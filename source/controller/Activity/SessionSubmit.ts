@@ -26,12 +26,12 @@ export class SessionSubmitController {
     ) {
         if (!currentUser) throw new UnauthorizedError();
 
-        const session = LCObject.createWithoutData('Session', sid);
+        const session = await new Query('Session')
+            .equalTo('id', sid)
+            .equalTo('owner', currentUser)
+            .first();
 
-        await session.fetch();
-
-        if (session.get('owner').id !== currentUser.id)
-            throw new ForbiddenError();
+        if (!session) throw new ForbiddenError();
 
         const submit = new SessionSubmit();
 
@@ -99,12 +99,12 @@ export class SessionSubmitController {
     ) {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = LCObject.createWithoutData('Activity', aid);
+        const activity = await new Query('Activity')
+            .equalTo('id', id)
+            .equalTo('owner', currentUser)
+            .first();
 
-        await activity.fetch();
-
-        if (activity.get('owner').id !== currentUser.id)
-            throw new ForbiddenError();
+        if (!activity) throw new ForbiddenError();
 
         const submit = LCObject.createWithoutData('SessionSubmit', id);
 

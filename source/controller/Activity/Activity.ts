@@ -55,19 +55,21 @@ export class ActivityController {
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = LCObject.createWithoutData('Activity', id);
+        const activity = await new Query('Activity')
+            .equalTo('id', id)
+            .equalTo('owner', currentUser)
+            .first();
 
-        await activity.fetch();
+        if (!activity) throw new ForbiddenError();
 
-        if (activity.get('owner').id !== currentUser.id)
-            throw new ForbiddenError();
-
-        await activity.save({
-            ...rest,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            owner: currentUser
-        });
+        await activity
+            .set({
+                ...rest,
+                startTime: new Date(startTime),
+                endTime: new Date(endTime),
+                owner: currentUser
+            })
+            .save();
 
         return activity.toJSON();
     }
@@ -80,6 +82,13 @@ export class ActivityController {
         return new Query('Activity')
             .limit(pageSize)
             .skip(pageSize * --pageIndex)
+            .find();
+    }
+
+    @Get('/:id/cooperation')
+    getCooperations(@Param('id') id: string) {
+        return new Query('Cooperation')
+            .equalTo('activity', LCObject.createWithoutData('Activity', id))
             .find();
     }
 }
