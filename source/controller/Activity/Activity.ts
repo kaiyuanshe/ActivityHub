@@ -8,7 +8,8 @@ import {
     Get,
     Param,
     Patch,
-    QueryParam
+    QueryParam,
+    ForbiddenError
 } from 'routing-controllers';
 
 import { LCContext } from '../../utility';
@@ -21,13 +22,18 @@ export class ActivityController {
     @Post()
     async create(
         @Ctx() { currentUser }: LCContext,
-        @Body() body: ActivityModel
+        @Body() { startTime, endTime, ...rest }: ActivityModel
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         const activity = new Activity();
 
-        await activity.save({ owner: currentUser, ...body });
+        await activity.save({
+            ...rest,
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            owner: currentUser
+        });
 
         return activity.toJSON();
     }
@@ -45,13 +51,23 @@ export class ActivityController {
     async edit(
         @Ctx() { currentUser }: LCContext,
         @Param('id') id: string,
-        @Body() body: ActivityModel
+        @Body() { startTime, endTime, ...rest }: ActivityModel
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
         const activity = LCObject.createWithoutData('Activity', id);
 
-        await activity.save(body);
+        await activity.fetch();
+
+        if (activity.get('owner').id !== currentUser.id)
+            throw new ForbiddenError();
+
+        await activity.save({
+            ...rest,
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            owner: currentUser
+        });
 
         return activity.toJSON();
     }

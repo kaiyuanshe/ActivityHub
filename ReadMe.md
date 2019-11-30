@@ -20,7 +20,7 @@
 
 -   [x] [SessionSubmit](source/model/Activity/SessionSubmit.ts) 环节申报（Activity 与 Session）
 
--   [ ] Organization 合作方（场地、赞助、媒体等）
+-   [x] [Organization](source/model/Organization/Organization.ts) 合作方（场地、赞助、媒体等）
 
 -   [ ] Place 会场（会议室、教室、咖啡馆等）
 

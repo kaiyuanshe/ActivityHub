@@ -11,6 +11,7 @@ import {
     ActiviySessionController,
     SessionSubmitController
 } from './controller/Activity';
+import { OrganizationController } from './controller/Organization';
 
 const {
     LEANCLOUD_APP_ID: appId,
@@ -43,7 +44,8 @@ useKoaServer(app, {
         SessionController,
         SessionSubmitController,
         ActiviySessionController,
-        ActivityController
+        ActivityController,
+        OrganizationController
     ]
 });
 
