@@ -18,7 +18,7 @@
 
 -   [x] [Session](source/model/Activity/Session.ts) 活动环节（演讲、实训等）
 
--   [ ] SessionSubmit 环节申报（Activity 与 Session）
+-   [x] [SessionSubmit](source/model/Activity/SessionSubmit.ts) 环节申报（Activity 与 Session）
 
 -   [ ] Organization 合作方（场地、赞助、媒体等）
 

@@ -8,7 +8,8 @@ import MainController from './controller/Main';
 import SessionController from './controller/Session';
 import {
     ActivityController,
-    ActiviySessionController
+    ActiviySessionController,
+    SessionSubmitController
 } from './controller/Activity';
 
 const {
@@ -40,6 +41,7 @@ useKoaServer(app, {
     controllers: [
         MainController,
         SessionController,
+        SessionSubmitController,
         ActiviySessionController,
         ActivityController
     ]
