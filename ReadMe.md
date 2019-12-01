@@ -1,5 +1,7 @@
 # ActivityHub
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/kaiyuanshe/ActivityHub.svg)](https://greenkeeper.io/)
+
 开源的**活动筹办系统**，基于 [Koa][1]、[TypeScript][2] 和 [LeanCloud][3] 的 **Node.js RESTful API** 项目。
 
 [![NPM Dependency](https://david-dm.org/kaiyuanshe/ActivityHub.svg)][4]
