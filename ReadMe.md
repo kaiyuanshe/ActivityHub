@@ -16,17 +16,19 @@
 
 -   [x] [User](source/model/User.ts) 组织者、讲师、合作方联系人、志愿者等
 
+-   [x] [Organization](source/model/Organization/Organization.ts) 主办、协办、场地、赞助、媒体、展商等
+
+-   [x] [Membership](source/model/Organization/Membership.ts) 组织关系（User 与 Organization）
+
+-   [ ] Place 会场（会议室、教室、咖啡馆等）
+
 -   [x] [Activity](source/model/Activity/Activity.ts) 小型沙龙、中型活动、大型会议
+
+-   [x] [Cooperation](source/model/Organization/Cooperation.ts) 合作关系（Activity 与 Organization）
 
 -   [x] [Session](source/model/Activity/Session.ts) 活动环节（演讲、实训等）
 
 -   [x] [SessionSubmit](source/model/Activity/SessionSubmit.ts) 环节申报（Activity 与 Session）
-
--   [x] [Organization](source/model/Organization/Organization.ts) 合作方（场地、赞助、媒体等）
-
--   [ ] Place 会场（会议室、教室、咖啡馆等）
-
--   [x] [Cooperation](source/model/Organization/Cooperation.ts) 合作关系（Activity 与 Organization）
 
 -   [ ] Ticket 门票类别（单 Activity、多 Session）
 
@@ -39,6 +41,8 @@
 -   [ ] Track 分会场、议程轨（相当于分类）
 
 -   [ ] Exhibition 外场展位
+
+-   [ ] Material 物料
 
 -   [ ] Account 账目（赞助、差旅、物料、门票等）
 
@@ -53,6 +57,12 @@ lean login
 lean switch
 lean up
 ```
+
+## 竞品
+
+-   https://github.com/freeCodeCamp/chapter
+-   https://www.bagevent.com/introduce/academic_introduce.html
+-   https://www.bagevent.com/introduce/exhibitor_introduce.html
 
 [1]: https://koajs.com/
 [2]: https://www.typescriptlang.org/

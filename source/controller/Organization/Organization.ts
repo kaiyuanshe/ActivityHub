@@ -5,7 +5,6 @@ import {
     Ctx,
     Body,
     UnauthorizedError,
-    ForbiddenError,
     Get,
     Param,
     QueryParam,
@@ -14,9 +13,10 @@ import {
 } from 'routing-controllers';
 
 import { LCContext } from '../../utility';
-import { OrganizationModel } from '../../model/Organization';
+import { OrganizationModel, MemberRole } from '../../model/Organization';
+import { Membership, MembershipController } from './Membership';
 
-const Organization = LCObject.extend('Organization');
+export class Organization extends LCObject {}
 
 @JsonController('/organization')
 export class OrganizationController {
@@ -27,23 +27,24 @@ export class OrganizationController {
     ) {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = await new Query('Activity')
-            .equalTo('owner', currentUser)
-            .greaterThan('endTime', new Date())
-            .first();
-
-        if (!activity) throw new ForbiddenError();
-
         const organization = new Organization();
 
         await organization.save(body);
+
+        const membership = new Membership();
+
+        await membership.save({
+            user: currentUser,
+            organization,
+            role: MemberRole.Admin
+        });
 
         return organization.toJSON();
     }
 
     @Get('/:id')
     async getOne(@Param('id') id: string) {
-        const organization = LCObject.createWithoutData('Organization', id);
+        const organization = await new Query(Organization).get(id);
 
         await organization.fetch();
 
@@ -55,7 +56,7 @@ export class OrganizationController {
         @QueryParam('pageSize') pageSize = 10,
         @QueryParam('pageIndex') pageIndex = 1
     ) {
-        return new Query('Organization')
+        return new Query(Organization)
             .limit(pageSize)
             .skip(pageSize * --pageIndex)
             .find();
@@ -67,22 +68,12 @@ export class OrganizationController {
         @Param('id') id: string,
         @Body() body: OrganizationModel
     ) {
-        if (!currentUser) throw new UnauthorizedError();
+        await MembershipController.assertAdmin(currentUser, id);
 
-        const cooperation = await new Query('Cooperation')
-            .equalTo(
-                'organization',
-                LCObject.createWithoutData('Organization', id)
-            )
-            .equalTo('contactUser', currentUser)
-            .greaterThan('endTime', new Date())
-            .first();
-
-        if (!cooperation) throw new ForbiddenError();
-
-        const duplicate = await new Query('Organization')
-            .equalTo('name', body.name)
-            .first();
+        const duplicate = await Query.or(
+            new Query(Organization).equalTo('name', body.name),
+            new Query(Organization).equalTo('englishName', body.englishName)
+        ).first();
 
         if (duplicate) throw new BadRequestError();
 
