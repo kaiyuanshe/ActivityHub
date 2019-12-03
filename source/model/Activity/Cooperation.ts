@@ -2,7 +2,7 @@ import { IsString, IsPositive, Length } from 'class-validator';
 
 export class CooperationModel {
     @IsString()
-    activityId: string;
+    organizationId: string;
 
     @IsPositive()
     level: number;

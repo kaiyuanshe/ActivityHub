@@ -1,4 +1,4 @@
-import { Length, IsDateString, IsUrl } from 'class-validator';
+import { Length, IsDateString, IsUrl, IsString } from 'class-validator';
 
 export class ActivityModel {
     @Length(3)
@@ -18,4 +18,7 @@ export class ActivityModel {
 
     @IsUrl()
     banner?: string;
+
+    @IsString()
+    organizationId: string;
 }

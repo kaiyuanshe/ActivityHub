@@ -24,7 +24,7 @@
 
 -   [x] [Activity](source/model/Activity/Activity.ts) 小型沙龙、中型活动、大型会议
 
--   [x] [Cooperation](source/model/Organization/Cooperation.ts) 合作关系（Activity 与 Organization）
+-   [x] [Cooperation](source/model/Activity/Cooperation.ts) 合作关系（Activity 与 Organization）
 
 -   [x] [Session](source/model/Activity/Session.ts) 活动环节（演讲、实训等）
 

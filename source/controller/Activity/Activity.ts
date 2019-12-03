@@ -1,4 +1,4 @@
-import { Object as LCObject, Query } from 'leanengine';
+import { Object as LCObject, Query, User } from 'leanengine';
 import {
     JsonController,
     Post,
@@ -14,15 +14,32 @@ import {
 
 import { LCContext } from '../../utility';
 import { ActivityModel } from '../../model/Activity';
+import { Cooperation } from './Cooperation';
+import { MembershipController, Organization } from '../Organization';
 
-const Activity = LCObject.extend('Activity');
+export class Activity extends LCObject {}
 
 @JsonController('/activity')
 export class ActivityController {
+    static async assertAdmin(user: User, aid: string) {
+        if (!user) throw new UnauthorizedError();
+
+        const activity = await new Query(Activity).get(aid);
+
+        const owner: User = activity.get('owner'),
+            organization: Organization = activity.get('organization');
+
+        if (!organization) {
+            if (user.id !== owner.id) throw new ForbiddenError();
+        } else await MembershipController.assertAdmin(user, organization.id);
+
+        return activity;
+    }
+
     @Post()
     async create(
         @Ctx() { currentUser }: LCContext,
-        @Body() { startTime, endTime, ...rest }: ActivityModel
+        @Body() { startTime, endTime, organizationId, ...rest }: ActivityModel
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
@@ -32,7 +49,10 @@ export class ActivityController {
             ...rest,
             startTime: new Date(startTime),
             endTime: new Date(endTime),
-            owner: currentUser
+            owner: currentUser,
+            organization:
+                organizationId &&
+                LCObject.createWithoutData('Organization', organizationId)
         });
 
         return activity.toJSON();
@@ -40,7 +60,7 @@ export class ActivityController {
 
     @Get('/:id')
     async getOne(@Param('id') id: string): Promise<ActivityModel> {
-        const activity = LCObject.createWithoutData('Activity', id);
+        const activity = await new Query(Activity).get(id);
 
         await activity.fetch();
 
@@ -55,7 +75,7 @@ export class ActivityController {
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = await new Query('Activity')
+        const activity = await new Query(Activity)
             .equalTo('id', id)
             .equalTo('owner', currentUser)
             .first();
@@ -79,7 +99,7 @@ export class ActivityController {
         @QueryParam('pageSize') pageSize = 10,
         @QueryParam('pageIndex') pageIndex = 1
     ) {
-        return new Query('Activity')
+        return new Query(Activity)
             .limit(pageSize)
             .skip(pageSize * --pageIndex)
             .find();
@@ -87,7 +107,7 @@ export class ActivityController {
 
     @Get('/:id/cooperation')
     getCooperations(@Param('id') id: string) {
-        return new Query('Cooperation')
+        return new Query(Cooperation)
             .equalTo('activity', LCObject.createWithoutData('Activity', id))
             .find();
     }

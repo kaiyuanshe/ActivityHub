@@ -1,2 +1,2 @@
 export * from './Organization';
-export * from './Cooperation';
+export * from './Membership';

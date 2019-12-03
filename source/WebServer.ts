@@ -9,11 +9,12 @@ import SessionController from './controller/Session';
 import {
     ActivityController,
     ActiviySessionController,
-    SessionSubmitController
+    SessionSubmitController,
+    CooperationController
 } from './controller/Activity';
 import {
     OrganizationController,
-    CooperationController
+    MembershipController
 } from './controller/Organization';
 
 const {
@@ -43,13 +44,14 @@ const app = new Koa()
 useKoaServer(app, {
     cors: { credentials: true },
     controllers: [
-        MainController,
-        SessionController,
+        CooperationController,
         SessionSubmitController,
         ActiviySessionController,
         ActivityController,
-        CooperationController,
-        OrganizationController
+        MembershipController,
+        OrganizationController,
+        SessionController,
+        MainController
     ]
 });
 
