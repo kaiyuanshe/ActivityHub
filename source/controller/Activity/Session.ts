@@ -1,4 +1,4 @@
-import { Object as LCObject } from 'leanengine';
+import { Object as LCObject, Query, User } from 'leanengine';
 import {
     JsonController,
     Post,
@@ -7,16 +7,28 @@ import {
     UnauthorizedError,
     Get,
     Param,
-    Patch
+    Patch,
+    ForbiddenError
 } from 'routing-controllers';
 
-import { LCContext } from '../../utility';
+import { LCContext, createAdminACL } from '../../utility';
 import { SessionModel } from '../../model/Activity';
 
-const Session = LCObject.extend('Session');
+export class Session extends LCObject {}
 
 @JsonController('/activity/session')
 export class ActiviySessionController {
+    static async assertOwner(id: string, user: User) {
+        const session = await new Query(Session)
+            .equalTo('id', id)
+            .equalTo('owner', user)
+            .first();
+
+        if (session) return session;
+
+        throw new ForbiddenError();
+    }
+
     @Post()
     async create(
         @Ctx() { currentUser }: LCContext,
@@ -24,21 +36,16 @@ export class ActiviySessionController {
     ): Promise<SessionModel> {
         if (!currentUser) throw new UnauthorizedError();
 
-        const session = new Session();
+        const session = new Session().setACL(await createAdminACL(currentUser));
 
-        await session.save({
-            ...body,
-            owner: currentUser
-        });
+        await session.save({ ...body, owner: currentUser });
 
         return session.toJSON();
     }
 
     @Get('/:id')
     async getOne(@Param('id') id: string): Promise<SessionModel> {
-        const session = LCObject.createWithoutData('Session', id);
-
-        await session.fetch();
+        const session = await new Query(Session).get(id);
 
         return session.toJSON();
     }
@@ -53,7 +60,7 @@ export class ActiviySessionController {
 
         const session = LCObject.createWithoutData('Session', id);
 
-        await session.save(body);
+        await session.save({ ...body, owner: currentUser });
 
         return session.toJSON();
     }

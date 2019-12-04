@@ -10,5 +10,5 @@ export class MemberModel {
     userId: string;
 
     @IsEnum(MemberRole)
-    role: MemberRole;
+    roleType: MemberRole;
 }

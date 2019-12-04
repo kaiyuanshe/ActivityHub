@@ -6,16 +6,14 @@ import { useKoaServer } from 'routing-controllers';
 
 import MainController from './controller/Main';
 import SessionController from './controller/Session';
+import { UserController } from './controller/User';
 import {
     ActivityController,
     ActiviySessionController,
     SessionSubmitController,
     CooperationController
 } from './controller/Activity';
-import {
-    OrganizationController,
-    MembershipController
-} from './controller/Organization';
+import { OrganizationController } from './controller/Organization';
 
 const {
     LEANCLOUD_APP_ID: appId,
@@ -48,8 +46,9 @@ useKoaServer(app, {
         SessionSubmitController,
         ActiviySessionController,
         ActivityController,
-        MembershipController,
+
         OrganizationController,
+        UserController,
         SessionController,
         MainController
     ]

@@ -5,16 +5,17 @@ import {
     Ctx,
     UnauthorizedError,
     Param,
-    ForbiddenError,
     Body,
     Get,
     Patch
 } from 'routing-controllers';
-import { LCContext } from '../../utility';
 
+import { LCContext, createAdminACL } from '../../utility';
 import { SessionSubmitModel } from '../../model/Activity';
+import { ActiviySessionController } from './Session';
+import { Activity, ActivityController } from './Activity';
 
-const SessionSubmit = LCObject.extend('SessionSubmit');
+export class SessionSubmit extends LCObject {}
 
 @JsonController('/activity')
 export class SessionSubmitController {
@@ -26,18 +27,21 @@ export class SessionSubmitController {
     ) {
         if (!currentUser) throw new UnauthorizedError();
 
-        const session = await new Query('Session')
-            .equalTo('id', sid)
-            .equalTo('owner', currentUser)
-            .first();
+        const session = await ActiviySessionController.assertOwner(
+            sid,
+            currentUser
+        );
 
-        if (!session) throw new ForbiddenError();
+        const activity = await new Query(Activity).get(activityId),
+            acl = await createAdminACL(currentUser);
 
-        const submit = new SessionSubmit();
+        await ActivityController.setAdminACL(activity, acl);
+
+        const submit = new SessionSubmit().setACL(acl);
 
         await submit.save({
             session,
-            activity: LCObject.createWithoutData('Activity', activityId),
+            activity,
             mentors: [
                 currentUser,
                 ...mentorIds.map(id => LCObject.createWithoutData('_User', id))
@@ -50,9 +54,7 @@ export class SessionSubmitController {
 
     @Get('/session/submit/:id')
     async getOne(@Param('id') id: string) {
-        const submit = LCObject.createWithoutData('SessionSubmit', id);
-
-        await submit.fetch();
+        const submit = await new Query(SessionSubmit).get(id);
 
         return submit.toJSON();
     }
@@ -67,11 +69,6 @@ export class SessionSubmitController {
 
         const submit = LCObject.createWithoutData('SessionSubmit', id);
 
-        await submit.fetch();
-
-        if (submit.get('mentors')[0].id !== currentUser.id)
-            throw new ForbiddenError();
-
         await submit.save({
             activity: LCObject.createWithoutData('Activity', activityId),
             mentors: [
@@ -85,7 +82,7 @@ export class SessionSubmitController {
 
     @Get('/:aid/session/submit')
     getList(@Param('aid') aid: string) {
-        return new Query('SessionSubmit')
+        return new Query(SessionSubmit)
             .equalTo('activity', LCObject.createWithoutData('Activity', aid))
             .find();
     }
@@ -98,13 +95,6 @@ export class SessionSubmitController {
         @Body() { adopted }: SessionSubmitModel
     ) {
         if (!currentUser) throw new UnauthorizedError();
-
-        const activity = await new Query('Activity')
-            .equalTo('id', id)
-            .equalTo('owner', currentUser)
-            .first();
-
-        if (!activity) throw new ForbiddenError();
 
         const submit = LCObject.createWithoutData('SessionSubmit', id);
 

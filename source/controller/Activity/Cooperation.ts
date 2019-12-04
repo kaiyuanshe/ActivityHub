@@ -7,10 +7,11 @@ import {
     Body,
     Get,
     QueryParam,
-    Patch
+    Patch,
+    UnauthorizedError
 } from 'routing-controllers';
 
-import { LCContext } from '../../utility';
+import { LCContext, createAdminACL } from '../../utility';
 import { CooperationModel } from '../../model/Activity';
 import { ActivityController } from './Activity';
 
@@ -24,9 +25,11 @@ export class CooperationController {
         @Param('aid') aid: string,
         @Body() { organizationId, contactId, ...rest }: CooperationModel
     ) {
-        const activity = await ActivityController.assertAdmin(currentUser, aid);
+        const activity = await ActivityController.assertAdmin(aid, currentUser);
 
-        const cooperation = new Cooperation();
+        const cooperation = new Cooperation().setACL(
+            await createAdminACL(currentUser, activity.get('organization')?.id)
+        );
 
         await cooperation.save({
             ...rest,
@@ -59,13 +62,27 @@ export class CooperationController {
         @Ctx() { currentUser }: LCContext,
         @Param('aid') aid: string,
         @Param('id') id: string,
-        @Body() body: CooperationModel
+        @Body() { organizationId, contactId, ...rest }: CooperationModel
     ) {
-        await ActivityController.assertAdmin(currentUser, aid);
+        if (!currentUser) throw new UnauthorizedError();
 
-        const cooperation = LCObject.createWithoutData(Cooperation, id);
+        const cooperation = LCObject.createWithoutData(Cooperation, id).set(
+            rest
+        );
 
-        await cooperation.save(body);
+        if (organizationId)
+            cooperation.set(
+                'organization',
+                LCObject.createWithoutData('Organization', organizationId)
+            );
+
+        if (contactId)
+            cooperation.set(
+                'contactUser',
+                LCObject.createWithoutData('_User', contactId)
+            );
+
+        await cooperation.save();
 
         return cooperation.toJSON();
     }

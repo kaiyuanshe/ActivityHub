@@ -1,4 +1,4 @@
-import { Object as LCObject, Query, User } from 'leanengine';
+import { Object as LCObject, User, Query, Role, ACL } from 'leanengine';
 import {
     JsonController,
     Post,
@@ -12,28 +12,43 @@ import {
     ForbiddenError
 } from 'routing-controllers';
 
-import { LCContext } from '../../utility';
+import { LCContext, createAdminACL } from '../../utility';
+import { MemberRole } from '../../model/Organization';
 import { ActivityModel } from '../../model/Activity';
-import { Cooperation } from './Cooperation';
-import { MembershipController, Organization } from '../Organization';
 
 export class Activity extends LCObject {}
 
 @JsonController('/activity')
 export class ActivityController {
-    static async assertAdmin(user: User, aid: string) {
-        if (!user) throw new UnauthorizedError();
-
+    static async assertAdmin(aid: string, user: User) {
         const activity = await new Query(Activity).get(aid);
 
-        const owner: User = activity.get('owner'),
-            organization: Organization = activity.get('organization');
+        const organization = activity.get('organization');
 
-        if (!organization) {
-            if (user.id !== owner.id) throw new ForbiddenError();
-        } else await MembershipController.assertAdmin(user, organization.id);
+        const isAdmin = organization
+            ? (await user.getRoles()).find(
+                  role =>
+                      role.getName() ===
+                      `${organization.id}_${MemberRole.Admin}`
+              )
+            : activity.get('owner').id === user.id;
 
-        return activity;
+        if (isAdmin) return activity;
+
+        throw new ForbiddenError();
+    }
+
+    static async setAdminACL(activity: Activity, acl: ACL) {
+        const organization = activity.get('organization');
+
+        if (organization)
+            acl.setRoleWriteAccess(
+                await new Query(Role)
+                    .equalTo('name', `${organization.id}_${MemberRole.Admin}`)
+                    .first(),
+                true
+            );
+        else acl.setWriteAccess(activity.get('owner'), true);
     }
 
     @Post()
@@ -43,7 +58,9 @@ export class ActivityController {
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = new Activity();
+        const activity = new Activity().setACL(
+            await createAdminACL(currentUser, organizationId)
+        );
 
         await activity.save({
             ...rest,
@@ -62,8 +79,6 @@ export class ActivityController {
     async getOne(@Param('id') id: string): Promise<ActivityModel> {
         const activity = await new Query(Activity).get(id);
 
-        await activity.fetch();
-
         return activity.toJSON();
     }
 
@@ -75,12 +90,7 @@ export class ActivityController {
     ): Promise<ActivityModel> {
         if (!currentUser) throw new UnauthorizedError();
 
-        const activity = await new Query(Activity)
-            .equalTo('id', id)
-            .equalTo('owner', currentUser)
-            .first();
-
-        if (!activity) throw new ForbiddenError();
+        const activity = LCObject.createWithoutData('Activity', id);
 
         await activity
             .set({
@@ -102,13 +112,6 @@ export class ActivityController {
         return new Query(Activity)
             .limit(pageSize)
             .skip(pageSize * --pageIndex)
-            .find();
-    }
-
-    @Get('/:id/cooperation')
-    getCooperations(@Param('id') id: string) {
-        return new Query(Cooperation)
-            .equalTo('activity', LCObject.createWithoutData('Activity', id))
             .find();
     }
 }

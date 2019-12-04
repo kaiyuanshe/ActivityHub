@@ -1,4 +1,4 @@
-import { Object as LCObject, Query } from 'leanengine';
+import { Object as LCObject, Query, ACL, User, Role } from 'leanengine';
 import {
     JsonController,
     Post,
@@ -9,17 +9,32 @@ import {
     Param,
     QueryParam,
     Patch,
-    BadRequestError
+    BadRequestError,
+    OnUndefined,
+    Delete
 } from 'routing-controllers';
 
 import { LCContext } from '../../utility';
-import { OrganizationModel, MemberRole } from '../../model/Organization';
-import { Membership, MembershipController } from './Membership';
+import {
+    OrganizationModel,
+    MemberRole,
+    MemberModel
+} from '../../model/Organization';
 
 export class Organization extends LCObject {}
 
 @JsonController('/organization')
 export class OrganizationController {
+    createRole(user: User, name: string) {
+        const acl = new ACL();
+
+        acl.setPublicReadAccess(true),
+            acl.setPublicWriteAccess(false),
+            acl.setWriteAccess(user, true);
+
+        return new Role(name, acl).save();
+    }
+
     @Post()
     async create(
         @Ctx() { currentUser }: LCContext,
@@ -31,13 +46,22 @@ export class OrganizationController {
 
         await organization.save(body);
 
-        const membership = new Membership();
+        const admin = await this.createRole(
+            currentUser,
+            `${organization.id}_${MemberRole.Admin}`
+        );
+        await this.createRole(
+            currentUser,
+            `${organization.id}_${MemberRole.Worker}`
+        );
 
-        await membership.save({
-            user: currentUser,
-            organization,
-            role: MemberRole.Admin
-        });
+        const acl = new ACL();
+
+        acl.setPublicReadAccess(true),
+            acl.setPublicWriteAccess(false),
+            acl.setRoleWriteAccess(admin, true);
+
+        await organization.setACL(acl).save();
 
         return organization.toJSON();
     }
@@ -45,8 +69,6 @@ export class OrganizationController {
     @Get('/:id')
     async getOne(@Param('id') id: string) {
         const organization = await new Query(Organization).get(id);
-
-        await organization.fetch();
 
         return organization.toJSON();
     }
@@ -68,7 +90,7 @@ export class OrganizationController {
         @Param('id') id: string,
         @Body() body: OrganizationModel
     ) {
-        await MembershipController.assertAdmin(currentUser, id);
+        if (!currentUser) throw new UnauthorizedError();
 
         const duplicate = await Query.or(
             new Query(Organization).equalTo('name', body.name),
@@ -82,5 +104,66 @@ export class OrganizationController {
         await organization.set(body).save();
 
         return organization.toJSON();
+    }
+
+    @Post('/:id/member')
+    @OnUndefined(201)
+    async addMember(
+        @Ctx() { currentUser }: LCContext,
+        @Param('id') id: string,
+        @Body() { roleType, userId }: MemberModel
+    ) {
+        if (!currentUser) throw new UnauthorizedError();
+
+        const role = await new Query(Role)
+            .equalTo('name', `${id}_${roleType}`)
+            .first();
+
+        if (!role) throw new BadRequestError();
+
+        role.getUsers().add(LCObject.createWithoutData('_User', userId));
+
+        await role.save();
+    }
+
+    @Delete('/:id/member')
+    @OnUndefined(204)
+    async deleteMember(
+        @Ctx() { currentUser }: LCContext,
+        @Param('id') id: string,
+        @Body() { roleType, userId }: MemberModel
+    ) {
+        if (!currentUser) throw new UnauthorizedError();
+
+        const role = await new Query(Role)
+            .equalTo('name', `${id}_${roleType}`)
+            .first();
+
+        if (!role) throw new BadRequestError();
+
+        role.getUsers().remove(LCObject.createWithoutData('_User', userId));
+
+        await role.save();
+    }
+
+    @Get('/:id/member')
+    async getMemberList(
+        @Param('id') id: string,
+        @QueryParam('roleType') roleType = ''
+    ) {
+        const roles = await new Query(Role)
+            .startsWith('name', `${id}_${roleType}`)
+            .find();
+
+        const users = await Promise.all(
+            roles.map(role =>
+                role
+                    .getUsers()
+                    .query()
+                    .find()
+            )
+        );
+
+        return users.flat();
     }
 }
