@@ -1,10 +1,11 @@
 import { Object as LCObject, Query, ACL, User, Role } from 'leanengine';
 import {
     JsonController,
+    UnauthorizedError,
+    ForbiddenError,
     Post,
     Ctx,
     Body,
-    UnauthorizedError,
     Get,
     Param,
     QueryParam,
@@ -25,6 +26,16 @@ export class Organization extends LCObject {}
 
 @JsonController('/organization')
 export class OrganizationController {
+    static async assertAdmin(user: User, oid: string) {
+        if (!user) throw new UnauthorizedError();
+
+        const isAdmin = (await user.getRoles()).find(
+            role => role.getName().split('_')[0] === oid
+        );
+
+        if (!isAdmin) throw new ForbiddenError();
+    }
+
     createRole(user: User, name: string) {
         const acl = new ACL();
 
@@ -32,7 +43,7 @@ export class OrganizationController {
             acl.setPublicWriteAccess(false),
             acl.setWriteAccess(user, true);
 
-        return new Role(name, acl).save();
+        return new Role(name, acl);
     }
 
     @Post()
@@ -46,14 +57,17 @@ export class OrganizationController {
 
         await organization.save(body);
 
-        const admin = await this.createRole(
+        const admin = this.createRole(
             currentUser,
             `${organization.id}_${MemberRole.Admin}`
         );
+        admin.getUsers().add(currentUser);
+        await admin.save();
+
         await this.createRole(
             currentUser,
             `${organization.id}_${MemberRole.Worker}`
-        );
+        ).save();
 
         const acl = new ACL();
 

@@ -20,7 +20,7 @@
 
 -   [x] [Membership](source/model/Organization/Membership.ts) 组织关系（User 与 Organization）
 
--   [ ] Place 会场（会议室、教室、咖啡馆等）
+-   [x] [Place](source/model/Organization/Place.ts) 会场（会议室、教室、咖啡馆等）
 
 -   [x] [Activity](source/model/Activity/Activity.ts) 小型沙龙、中型活动、大型会议
 

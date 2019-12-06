@@ -16,10 +16,11 @@ export interface LCContext extends Context {
 export async function createAdminACL(user: User, oid?: string) {
     const acl = new ACL();
 
-    acl.setPublicReadAccess(true), acl.setPublicWriteAccess(false);
+    acl.setPublicReadAccess(true),
+        acl.setPublicWriteAccess(false),
+        acl.setWriteAccess(user, true);
 
-    if (!oid) acl.setWriteAccess(user, true);
-    else {
+    if (oid) {
         const role = await new Query(Role)
             .equalTo('name', `${oid}_${MemberRole.Admin}`)
             .first();
